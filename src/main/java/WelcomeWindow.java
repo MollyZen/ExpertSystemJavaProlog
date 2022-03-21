@@ -80,32 +80,18 @@ public class WelcomeWindow extends JFrame {
                 loadSystemFromFile();
 
                 //очистка внутренней базы
-                Term tmp = WelcomeWindow.this.conds.list.get(0).toTerm();
-                Term add = new Compound("assertz", new Term[]{WelcomeWindow.this.conds.list.get(0).toTerm()});
-                new Query(add).allSolutions();
-
-
-                Term cleanup = new Compound("retractall",
-                        new Term[]{
-                                new Atom("cond(_,_,_,_)")});
-                new Query(cleanup).allSolutions();
-                cleanup = new Compound("retractall",
-                        new Term[]{
-                                new Atom("question(_,_)")
-                        });
-                new Query(cleanup).allSolutions();
-                cleanup = new Compound("retractall",
-                        new Term[]{
-                                new Atom("rule(_,_)")
-                        });
-                new Query(cleanup).allSolutions();
+                Term goal = Term.textToTerm("file(File), unload_file(File), retract(file(_))");
+                new Query(goal).hasSolution();
 
                 //загрузка из файла в базу
-                Term goal = new Compound("consult", new Term[]{new Atom(WelcomeWindow.this.file.getAbsolutePath().replace("\\", "\\\\"), "string")});
+                goal = new Compound("assertz", new Term[]{new Compound("file", new Term[]{new Atom(WelcomeWindow.this.file.getAbsolutePath().replace("\\", "\\\\"), "string")})});
+                new Query(goal).hasSolution();
+                goal = new Compound("ensure_loaded", new Term[]{new Atom(WelcomeWindow.this.file.getAbsolutePath().replace("\\", "\\\\"), "string")});
                 new Query(goal).hasSolution();
 
                 QuizDialog quiz = new QuizDialog();
                 //передача указателя на диалог
+                new Query(Term.textToTerm("retractall(ref(_))")).hasSolution();
                 goal = new Compound("assertz", new Term[]{new Compound("ref", new Term[]{JPL.newJRef(quiz)})});
                 new Query(goal).hasSolution();
 
@@ -227,7 +213,7 @@ public class WelcomeWindow extends JFrame {
         loadSysLabel.setText("null");
         panel3.add(loadSysLabel);
         startSystemButton = new JButton();
-        startSystemButton.setText("Запустить Эс");
+        startSystemButton.setText("Запустить ЭС");
         panel3.add(startSystemButton);
     }
 

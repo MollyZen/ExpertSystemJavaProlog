@@ -77,7 +77,7 @@
           <component id="67a3f" class="javax.swing.JButton" binding="startSystemButton">
             <constraints/>
             <properties>
-              <text value="Запустить Эс"/>
+              <text value="Запустить ЭС"/>
             </properties>
           </component>
         </children>

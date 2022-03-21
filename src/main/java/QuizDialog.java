@@ -1,10 +1,16 @@
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jpl7.*;
 import org.jpl7.Integer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class QuizDialog extends JDialog {
     private JPanel contentPane;
@@ -12,17 +18,18 @@ public class QuizDialog extends JDialog {
     private JButton buttonCancel;
     private JTextArea questionArea;
 
+    private JPanel radioPanel;
+    private JScrollPane radioScrollPane;
+    private final ButtonGroup choiceButtonsGroup = new ButtonGroup();
+    private final List<JRadioButton> choiceButtons = new ArrayList<JRadioButton>();
+
+    private int question;
+    private final List<java.lang.Integer> conditions = new ArrayList<>();
+
     public QuizDialog() {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
-
-        buttonOK.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onOK();
-            }
-        });
-
         buttonCancel.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onCancel();
@@ -43,20 +50,119 @@ public class QuizDialog extends JDialog {
                 onCancel();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        buttonOK.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                onOK();
+            }
+        });
     }
 
     private void onOK() {
-        // add your code here
-        dispose();
+        String val = "";
+        Term goal;
+        int id = 0;
+        for (JRadioButton butt : choiceButtons) {
+            if (butt.isSelected()) {
+                val = butt.getText();
+                break;
+            }
+            ++id;
+        }
+        if (question == -1) {
+            if (val.equals("Да")) {
+                goal = Term.textToTerm("assertz(fact(" + conditions.get(0).toString() + ",-1,1))");
+            } else {
+                goal = Term.textToTerm("assertz(fact(" + conditions.get(0).toString() + ",-1,0))");
+            }
+        } else {
+            goal = Term.textToTerm("assertz(fact(" + conditions.get(id) + "," + question + ",1))");
+        }
+        new Query(goal).hasSolution();
+        new Query(Term.textToTerm("retractall(updated(_)), assertz(updated(1))")).hasSolution();
+        new Query(Term.textToTerm("retractall(updated(_)), assertz(updates(0))")).hasSolution();
+        conditions.clear();
+        clearButtons();
+        radioPanel.revalidate();
     }
 
     private void onCancel() {
-        // add your code here if necessary
         dispose();
+    }
+
+    public void saveCond(int cond) {
+        conditions.add(cond);
+    }
+
+    public void saveConds(int[] conds) {
+        for (int cond : conds) {
+            conditions.add(cond);
+        }
     }
 
     public void setQuestion(String Question) {
         questionArea.setText(Question);
+        questionArea.repaint();
+    }
+
+    public void setButtons(int qNum) {
+        question = qNum;
+        String[] buttons;
+        if (qNum != -1) {
+            buttons = getConds(qNum);
+        } else {
+            buttons = new String[]{"Да", "Нет"};
+        }
+        addButtons(buttons);
+        radioPanel.revalidate();
+        radioPanel.repaint();
+    }
+
+    public String[] getConds(int qNum) {
+        Term goal = Term.textToTerm("cond(Id,Desc," + qNum + ",_)");
+        Map<String, Term>[] terms = new Query(goal).allSolutions();
+        List<String> buttons = new ArrayList<>();
+        int[] drip = new int[terms.length];
+        for (Map<String, Term> term : terms) {
+            buttons.add(term.get("Desc").toString());
+        }
+        for (int i = 0; i < terms.length; ++i) {
+            drip[i] = terms[i].get("Id").intValue();
+        }
+        String[] strings = new String[buttons.size()];
+        buttons.toArray(strings);
+        saveConds(drip);
+        return strings;
+    }
+
+    public void addButtons(String... buttons) {
+        radioPanel.setLayout(new GridLayoutManager(buttons.length, 1));
+        for (int i = 0; i < buttons.length; ++i) {
+            addButton(buttons[i], i);
+        }
+        radioPanel.setPreferredSize(new Dimension(100, (choiceButtons.size() + 1) * 30));
+    }
+
+    public void addButton(String button, int row) {
+        JRadioButton drip = new JRadioButton(button);
+        choiceButtons.add(drip);
+        choiceButtonsGroup.add(drip);
+        radioPanel.add(drip, new GridConstraints(row, 0, 1, 1,
+                GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                GridConstraints.ALIGN_CENTER, GridConstraints.ALIGN_CENTER,
+                new Dimension(100, 30), new Dimension(100, 30), new Dimension(100, 30)));
+    }
+
+    public void clearButtons() {
+        for (JRadioButton button : choiceButtons) {
+            choiceButtonsGroup.remove(button);
+            radioPanel.remove(button);
+            this.remove(button);
+        }
+        choiceButtons.clear();
+    }
+
+    public void debug(String val) {
+        System.out.println(val);
     }
 
     public void run() {
@@ -66,15 +172,24 @@ public class QuizDialog extends JDialog {
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.setLocationRelativeTo(null);
 
-        Term rule1 = Term.textToTerm("askQuestion(CondNum, -1) :- ref(Ref), cond(CondNum, Question, _, _), string_to_atom(Question, Drip), jpl_call(Ref, setQuestion, [Drip], _)");
-        Term rule2 = Term.textToTerm("askQuestion(CondNum,QNum) :- ref(Ref), question(QNum, Question), string_to_atom(Question, Drip), jpl_call(Ref, setQuestion, [Drip], _)");
-        //Term rule3 = Util.textToTerm("");
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                //var drip = new Query(new Compound("rule", new Term[]{new Variable("Res"), new Variable("List")})).oneSolution();
+                var res = new Query(new Compound("work", new Term[]{new Variable("Answ")})).oneSolution();
+                QuizDialog.this.dispose();
+                ResultDialog resultDialog = new ResultDialog();
+                if (res != null && res.get("Answ").toString().equals("true")) {
+                    resultDialog.resField.setText("Результат: следует покупать");
+                } else {
+                    resultDialog.resField.setText("Результат: покупать НЕ следует");
+                }
+                resultDialog.run();
+            }
+        };
+        thread.start();
 
-        new Query(new Compound("assertz", new Term[]{rule1})).hasSolution();
-        new Query(new Compound("assertz", new Term[]{rule2})).hasSolution();
-
-        new Query(new Compound("askQuestion", new Term[]{new Integer(2), new Integer(2)})).hasSolution();
-
+        this.setMinimumSize(new Dimension(this.getPreferredSize().width, this.getPreferredSize().height));
         this.pack();
         this.setVisible(true);
     }
@@ -147,9 +262,15 @@ public class QuizDialog extends JDialog {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel3.add(panel4, gbc);
+        final JScrollPane scrollPane1 = new JScrollPane();
+        panel4.add(scrollPane1, BorderLayout.CENTER);
         questionArea = new JTextArea();
         questionArea.setEditable(false);
-        panel4.add(questionArea, BorderLayout.CENTER);
+        questionArea.setMinimumSize(new Dimension(360, 80));
+        questionArea.setPreferredSize(new Dimension(360, 80));
+        questionArea.setRows(0);
+        questionArea.setText("");
+        scrollPane1.setViewportView(questionArea);
         final JPanel panel5 = new JPanel();
         panel5.setLayout(new BorderLayout(0, 0));
         gbc = new GridBagConstraints();
@@ -159,8 +280,13 @@ public class QuizDialog extends JDialog {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panel3.add(panel5, gbc);
-        final JScrollPane scrollPane1 = new JScrollPane();
-        panel5.add(scrollPane1, BorderLayout.CENTER);
+        radioScrollPane = new JScrollPane();
+        radioScrollPane.setVerticalScrollBarPolicy(20);
+        panel5.add(radioScrollPane, BorderLayout.CENTER);
+        radioPanel = new JPanel();
+        radioPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        radioPanel.setPreferredSize(new Dimension(360, 80));
+        radioScrollPane.setViewportView(radioPanel);
     }
 
     /**
