@@ -26,6 +26,8 @@ public class QuizDialog extends JDialog {
     private int question;
     private final List<java.lang.Integer> conditions = new ArrayList<>();
 
+    Thread thread;
+
     public QuizDialog() {
         setContentPane(contentPane);
         setModal(true);
@@ -86,6 +88,8 @@ public class QuizDialog extends JDialog {
     }
 
     private void onCancel() {
+        thread.interrupt();
+        new Query("retractall(updated(_)), assertz(interrupted(1)), assertz(updated(1))").hasSolution();
         dispose();
     }
 
@@ -161,36 +165,40 @@ public class QuizDialog extends JDialog {
         choiceButtons.clear();
     }
 
-    public void debug(String val) {
+    public static void debug(String val) {
         System.out.println(val);
     }
 
     public void run() {
         setContentPane(contentPane);
+        this.thread = new Thread() {
+            @Override
+            public void run() {
+                new Query("ref(Ref),jpl_call(Ref, setTitle, ['Экспертная система'], _)").hasSolution();
+                var res = new Query(new Compound("work", new Term[]{new Variable("Answ")})).oneSolution();
+                if (!this.isInterrupted()) {
+                    QuizDialog.this.dispose();
+                    ResultDialog resultDialog = new ResultDialog();
+                    if (res != null && res.get("Answ").toString().equals("true")) {
+                        resultDialog.resField.setText("Результат: следует покупать");
+                    } else {
+                        resultDialog.resField.setText("Результат: покупать НЕ следует");
+                    }
+                    resultDialog.run();
+                } else {
+                    System.out.println("Interrupted!");
+                }
+            }
+        };
+        this.thread.start();
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.setLocationRelativeTo(null);
-
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                //var drip = new Query(new Compound("rule", new Term[]{new Variable("Res"), new Variable("List")})).oneSolution();
-                var res = new Query(new Compound("work", new Term[]{new Variable("Answ")})).oneSolution();
-                QuizDialog.this.dispose();
-                ResultDialog resultDialog = new ResultDialog();
-                if (res != null && res.get("Answ").toString().equals("true")) {
-                    resultDialog.resField.setText("Результат: следует покупать");
-                } else {
-                    resultDialog.resField.setText("Результат: покупать НЕ следует");
-                }
-                resultDialog.run();
-            }
-        };
-        thread.start();
-
         this.setMinimumSize(new Dimension(this.getPreferredSize().width, this.getPreferredSize().height));
         this.pack();
+        this.questionArea.setText("Загрузка...");
+        this.setTitle("Загрузка...");
         this.setVisible(true);
     }
 

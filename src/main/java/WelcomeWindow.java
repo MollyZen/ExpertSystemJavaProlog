@@ -79,30 +79,29 @@ public class WelcomeWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 loadSystemFromFile();
 
-                //очистка внутренней базы
-                Term goal = Term.textToTerm("file(File), unload_file(File), retract(file(_))");
-                new Query(goal).hasSolution();
-
-                //загрузка из файла в базу
-                goal = new Compound("assertz", new Term[]{new Compound("file", new Term[]{new Atom(WelcomeWindow.this.file.getAbsolutePath().replace("\\", "\\\\"), "string")})});
-                new Query(goal).hasSolution();
-                goal = new Compound("ensure_loaded", new Term[]{new Atom(WelcomeWindow.this.file.getAbsolutePath().replace("\\", "\\\\"), "string")});
-                new Query(goal).hasSolution();
+                System.out.println(file.getAbsolutePath());
+                System.out.println(new Query("file(File)").oneSolution().get("File").toString().replace("\\\\", "\\").replace("'", ""));
+                if (!file.getAbsolutePath().equals(new Query("file(File)").oneSolution().get("File").toString().replace("\\\\", "\\").replace("'", ""))) {
+                    Term goal = Term.textToTerm("file(File), unload_file(File), retractall(file(_))");
+                    new Query(goal).hasSolution();
+                    goal = new Compound("assertz", new Term[]{new Compound("file", new Term[]{new Atom(WelcomeWindow.this.file.getAbsolutePath().replace("\\", "\\\\"), "string")})});
+                    new Query(goal).hasSolution();
+                    goal = Term.textToTerm("file(File), ensure_loaded(File)");
+                    new Query(goal).hasSolution();
+                }
 
                 QuizDialog quiz = new QuizDialog();
                 //передача указателя на диалог
                 new Query(Term.textToTerm("retractall(ref(_))")).hasSolution();
-                goal = new Compound("assertz", new Term[]{new Compound("ref", new Term[]{JPL.newJRef(quiz)})});
+                Term goal = new Compound("assertz", new Term[]{new Compound("ref", new Term[]{JPL.newJRef(quiz)})});
                 new Query(goal).hasSolution();
+
+                //очистка базы фактов
+                new Query("retractall(fact(_,_,_)), assertz(fact(drip,drip,drip))").hasSolution();
 
                 quiz.run();
             }
         });
-    }
-
-    public void drip() {
-        JOptionPane.showMessageDialog(WelcomeWindow.this,
-                "Eggs are not supposed to be green.");
     }
 
     public void loadSystemFromFile() {

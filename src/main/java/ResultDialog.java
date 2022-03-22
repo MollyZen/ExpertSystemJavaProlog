@@ -26,8 +26,6 @@ public class ResultDialog extends JDialog {
     }
 
     private void onOK() {
-        new Query("retractall(fact(_,_,_))").hasSolution();
-        new Query("assertz(fact(drip,drip,drip))").hasSolution();
         dispose();
     }
 
