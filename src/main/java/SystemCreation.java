@@ -80,6 +80,12 @@ public class SystemCreation extends JDialog {
         this.conds.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
+                ruleTable.repaint();
+            }
+        });
+        this.conds.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
                 if (e.getColumn() == 0) {
                     Condition localCond = SystemCreation.this.conds.getValue(e.getFirstRow());
                     if (checker.condIdMap.containsValue(localCond)) {

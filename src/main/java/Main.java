@@ -12,7 +12,7 @@ public class Main {
         List<Term> rulesToAdd = new ArrayList<>();
 
         //вывод вопроса в окно
-        rulesToAdd.add(Term.textToTerm("askQuestion(CondNum, -1) :- ref(Ref), cond(CondNum, Question, _, _), jpl_call(Ref, saveCond, [CondNum],_), string_to_atom(Question, Drip), jpl_call(Ref, setQuestion, [Drip], _)"));
+        rulesToAdd.add(Term.textToTerm("askQuestion(CondNum, -1) :- ref(Ref), cond(CondNum, Question, _, _), jpl_call(Ref, saveCond, [CondNum],_), concat(Question, '?', Dr), string_to_atom(Dr, Drip), jpl_call(Ref, setQuestion, [Drip], _)"));
         rulesToAdd.add(Term.textToTerm("askQuestion(CondNum,QNum) :- ref(Ref), question(QNum, Question), string_to_atom(Question, Drip), jpl_call(Ref, setQuestion, [Drip], _)"));
 
         //вывод кнопок

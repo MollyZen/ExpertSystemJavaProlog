@@ -1,16 +1,17 @@
 import prolog.Condition;
 import prolog.Conditions;
+import prolog.Rules;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 public class ChangeConditionList extends JDialog {
     private JPanel contentPane;
@@ -25,6 +26,12 @@ public class ChangeConditionList extends JDialog {
         super(owner);
         this.included = included;
         model = new Model(included, conditions.clone());
+        model.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                ChangeConditionList.this.revalidate();
+            }
+        });
 
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -52,6 +59,27 @@ public class ChangeConditionList extends JDialog {
                 onCancel();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        table1.setModel(model);
+        ((TableRowSorter) table1.getRowSorter()).setSortsOnUpdates(true);
+        table1.getTableHeader().setReorderingAllowed(false);
+        table1.getRowSorter().toggleSortOrder(1);
+
+        table1.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+
+                JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+                Model tableModel = (Model) table.getModel();
+
+                if ((Boolean) tableModel.getValueAt(row, 0) == Boolean.FALSE && tableModel.includedQuestions.contains(tableModel.getValueAt(row, 3))) {
+                    l.setBackground(Color.yellow);
+                } else {
+                    l.setBackground(Color.white);
+                }
+                return l;
+            }
+        });
     }
 
     private void onOK() {
@@ -69,9 +97,11 @@ public class ChangeConditionList extends JDialog {
     }
 
     private static class Model implements TableModel {
-        private static final String[] columnNames = {"Выбрано", "Номер", "Условие"};
+        private static final String[] columnNames = {"Выбрано", "Номер", "Условие", "Ассоциируемый вопрос"};
         Conditions conditions;
         Map<Integer, Boolean> selected;
+        private final List<Integer> includedQuestions = new ArrayList<>();
+        private final List<TableModelListener> listeners = new ArrayList<>();
 
         public Model(List<Integer> included, Conditions conditions) {
             selected = new HashMap<>();
@@ -88,6 +118,11 @@ public class ChangeConditionList extends JDialog {
                     selected.put(cond.id, Boolean.TRUE);
                 }
             }
+            for (Condition cond : conditions.list) {
+                if (selected.containsKey(cond.id) && !includedQuestions.contains(cond.ass_question)) {
+                    includedQuestions.add(cond.ass_question);
+                }
+            }
         }
 
         @Override
@@ -97,7 +132,7 @@ public class ChangeConditionList extends JDialog {
 
         @Override
         public int getColumnCount() {
-            return 3;
+            return columnNames.length;
         }
 
         @Override
@@ -111,6 +146,7 @@ public class ChangeConditionList extends JDialog {
                 case 0 -> Boolean.class;
                 case 1 -> Integer.class;
                 case 2 -> String.class;
+                case 3 -> Integer.class;
                 default -> Object.class;
             };
         }
@@ -126,6 +162,7 @@ public class ChangeConditionList extends JDialog {
                 case 0 -> Objects.requireNonNullElse(selected.get(conditions.getValue(rowIndex).id), Boolean.FALSE);
                 case 1 -> conditions.getValue(rowIndex).id;
                 case 2 -> conditions.getValue(rowIndex).desc;
+                case 3 -> conditions.getValue(rowIndex).ass_question;
                 default -> null;
             };
         }
@@ -133,18 +170,38 @@ public class ChangeConditionList extends JDialog {
         @Override
         public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
             if (columnIndex == 0) {
+                if (includedQuestions.contains(conditions.getValue(rowIndex).ass_question)) {
+                    for (Condition id : conditions.list) {
+                        if (id.ass_question != -1 && id.ass_question.equals(conditions.getValue(rowIndex).ass_question)) {
+                            selected.put(id.id, Boolean.FALSE);
+                            for (int i = 0; i < this.getRowCount(); ++i) {
+                                if (this.getValueAt(i, 1) == id.id) {
+                                    this.fireDataChanged(i, 1);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
                 selected.put(conditions.getValue(rowIndex).id, (Boolean) aValue);
+                this.fireDataChanged(rowIndex, columnIndex);
             }
         }
 
         @Override
         public void addTableModelListener(TableModelListener l) {
-
+            listeners.add(l);
         }
 
         @Override
         public void removeTableModelListener(TableModelListener l) {
 
+        }
+
+        public void fireDataChanged(int row, int col) {
+            for (var lister : listeners) {
+                lister.tableChanged(new TableModelEvent(this, row, row, col));
+            }
         }
     }
 
@@ -152,10 +209,6 @@ public class ChangeConditionList extends JDialog {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
-        table1.setModel(model);
-        ((TableRowSorter) table1.getRowSorter()).setSortsOnUpdates(true);
-        table1.getTableHeader().setReorderingAllowed(false);
-        table1.getRowSorter().toggleSortOrder(1);
 
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.setLocationRelativeTo(null);
