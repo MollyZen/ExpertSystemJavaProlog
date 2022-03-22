@@ -77,8 +77,6 @@ public class WelcomeWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 loadSystemFromFile();
 
-                System.out.println(file.getAbsolutePath());
-                System.out.println(new Query("file(File)").oneSolution().get("File").toString().replace("\\\\", "\\").replace("'", ""));
                 if (!file.getAbsolutePath().equals(new Query("file(File)").oneSolution().get("File").toString().replace("\\\\", "\\").replace("'", ""))) {
                     Term goal = Term.textToTerm("file(File), unload_file(File), retractall(file(_))");
                     new Query(goal).hasSolution();
@@ -86,6 +84,8 @@ public class WelcomeWindow extends JFrame {
                     new Query(goal).hasSolution();
                     goal = Term.textToTerm("file(File), ensure_loaded(File)");
                     new Query(goal).hasSolution();
+                } else {
+                    new Query("make").hasSolution();
                 }
 
                 QuizDialog quiz = new QuizDialog();

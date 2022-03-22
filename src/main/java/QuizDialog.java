@@ -24,7 +24,7 @@ public class QuizDialog extends JDialog {
     private final List<JRadioButton> choiceButtons = new ArrayList<JRadioButton>();
 
     private int question;
-    private final List<java.lang.Integer> conditions = new ArrayList<>();
+    private final List<Integer> conditions = new ArrayList<>();
 
     Thread thread;
 

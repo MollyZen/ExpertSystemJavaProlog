@@ -101,13 +101,25 @@ public class SystemCreation extends JDialog {
         condTable.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
-
                 JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
-
                 Conditions tableModel = (Conditions) table.getModel();
 
-
                 if (checker.isThisDuplicateCondId(tableModel.getValue(table.getRowSorter().convertRowIndexToModel(row)))) {
+                    l.setBackground(Color.pink);
+                } else {
+                    l.setBackground(Color.white);
+                }
+
+                return l;
+            }
+        });
+        condTable.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+                JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+                Conditions tableModel = (Conditions) table.getModel();
+
+                if (!checker.questionExists(tableModel.getValue(table.getRowSorter().convertRowIndexToModel(row)).ass_question)) {
                     l.setBackground(Color.pink);
                 } else {
                     l.setBackground(Color.white);
@@ -257,7 +269,7 @@ public class SystemCreation extends JDialog {
                     }
                     ((WelcomeWindow) owner).file = withExt;
                     ((WelcomeWindow) owner).loadSysLabel.setText(withExt.getName());
-                    //FileWriter writer;
+
                     try (OutputStreamWriter writer =
                                  new OutputStreamWriter(new FileOutputStream(withExt), StandardCharsets.UTF_8)) {
                         writer.write(":- encoding(utf8).\n");

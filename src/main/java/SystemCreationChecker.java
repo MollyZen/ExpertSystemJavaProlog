@@ -41,4 +41,16 @@ public class SystemCreationChecker{
     public boolean doAllCondsExists(List<Integer> conds){
         return conds.stream().allMatch(val -> this.conds.list.stream().anyMatch(cond -> cond.id.equals(val)));
     }
+
+    public boolean questionExists(Integer question){
+        if (question.equals(-1)){
+            return true;
+        }
+        for (Question que: questions.list){
+            if (que.id.equals(question)){
+                return true;
+            }
+        }
+        return false;
+    }
 }
