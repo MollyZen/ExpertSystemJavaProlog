@@ -1,12 +1,9 @@
 package prolog;
 
 import org.jpl7.Term;
-import org.jpl7.Util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Rule {
     public Boolean result = true;

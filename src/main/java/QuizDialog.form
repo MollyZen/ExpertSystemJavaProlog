@@ -72,7 +72,7 @@
                       <minimumSize width="360" height="80"/>
                       <preferredSize width="360" height="80"/>
                       <rows value="0"/>
-                      <text value=""/>
+                      <text value="Загрузка..."/>
                     </properties>
                   </component>
                 </children>

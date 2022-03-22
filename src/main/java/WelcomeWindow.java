@@ -7,13 +7,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.Integer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class WelcomeWindow extends JFrame {
@@ -91,6 +89,10 @@ public class WelcomeWindow extends JFrame {
                 }
 
                 QuizDialog quiz = new QuizDialog();
+
+                new Query("retractall(interrupted(_)), assertz(interrupted(0))").hasSolution();
+                new Query("retractall(updated(_)), assertz(updated(0))").hasSolution();
+
                 //передача указателя на диалог
                 new Query(Term.textToTerm("retractall(ref(_))")).hasSolution();
                 Term goal = new Compound("assertz", new Term[]{new Compound("ref", new Term[]{JPL.newJRef(quiz)})});

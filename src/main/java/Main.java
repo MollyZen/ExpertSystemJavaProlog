@@ -25,14 +25,14 @@ public class Main {
         rulesToAdd.add(Term.textToTerm("interrupted(0)"));
         rulesToAdd.add(
                 Term.textToTerm(
-                        "checkList([H|T]) :- not(interrupted(1)), ref(Ref),jpl_call(Ref, debug, ['step 1'], _), fact(H,_,1), !, checkList(T);" +
-                                "not(interrupted(1)), ref(Ref),jpl_call(Ref, debug, ['step 2'], _), fact(H,_,0),!,fail,!;" +
-                                "not(interrupted(1)), ref(Ref),jpl_call(Ref, debug, ['step 3'], _), cond(H,_,AssQ,_), fact(_,AssQ,_),!, fail,!;" +
-                                "not(interrupted(1)), ref(Ref),jpl_call(Ref, debug, ['step 4'], _), cond(H,_,AssQ,_), askQuestion(H,AssQ), addAssConds(AssQ), thread_wait(updated(1),[]), !, not(interrupted(1)), fact(H,_,1), !, checkList(T);" +
-                                "not(interrupted(1)), ref(Ref),jpl_call(Ref, debug, ['step 5'], _), !,fail,!"));
+                        "checkList([H|T]) :- not(interrupted(1)), fact(H,_,1), !, checkList(T);" +
+                                "not(interrupted(1)), fact(H,_,0),!,fail,!;" +
+                                "not(interrupted(1)), cond(H,_,AssQ,_), fact(_,AssQ,_),!, fail,!;" +
+                                "not(interrupted(1)), cond(H,_,AssQ,_), askQuestion(H,AssQ), addAssConds(AssQ), thread_wait(updated(1),[]), !, not(interrupted(1)), fact(H,_,1), !, checkList(T);" +
+                                "!,fail,!"));
 
         //ключевая обработка
-        rulesToAdd.add(Term.textToTerm("work(Answ) :- not(interrupted(1)), !, rule(Res, List), ref(Ref), jpl_call(Ref, debug, [Res], _), checkList(List), Answ = Res"));
+        rulesToAdd.add(Term.textToTerm("work(Answ) :- not(interrupted(1)), !, rule(Res, List), checkList(List), Answ = Res"));
 
         //следующие два нужны чтоб можно было загружать новые файлы и корректно отображать содержание
         rulesToAdd.add(Term.textToTerm("file(drip)"));

@@ -3,10 +3,6 @@ package prolog;
 import org.jpl7.Atom;
 import org.jpl7.Compound;
 import org.jpl7.Term;
-import org.jpl7.Util;
-
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class Condition {
     public Integer id = -1;

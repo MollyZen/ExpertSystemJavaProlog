@@ -1,16 +1,16 @@
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import org.jpl7.*;
-import org.jpl7.Integer;
+import org.jpl7.Compound;
+import org.jpl7.Query;
+import org.jpl7.Term;
+import org.jpl7.Variable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class QuizDialog extends JDialog {
     private JPanel contentPane;
@@ -105,6 +105,7 @@ public class QuizDialog extends JDialog {
 
     public void setQuestion(String Question) {
         questionArea.setText(Question);
+        questionArea.revalidate();
         questionArea.repaint();
     }
 
@@ -174,7 +175,6 @@ public class QuizDialog extends JDialog {
         this.thread = new Thread() {
             @Override
             public void run() {
-                new Query("ref(Ref),jpl_call(Ref, setTitle, ['Экспертная система'], _)").hasSolution();
                 var res = new Query(new Compound("work", new Term[]{new Variable("Answ")})).oneSolution();
                 if (!this.isInterrupted()) {
                     QuizDialog.this.dispose();
@@ -185,8 +185,6 @@ public class QuizDialog extends JDialog {
                         resultDialog.resField.setText("Результат: покупать НЕ следует");
                     }
                     resultDialog.run();
-                } else {
-                    System.out.println("Interrupted!");
                 }
             }
         };
@@ -197,8 +195,7 @@ public class QuizDialog extends JDialog {
         this.setLocationRelativeTo(null);
         this.setMinimumSize(new Dimension(this.getPreferredSize().width, this.getPreferredSize().height));
         this.pack();
-        this.questionArea.setText("Загрузка...");
-        this.setTitle("Загрузка...");
+        this.setTitle("Экспертная система");
         this.setVisible(true);
     }
 
@@ -277,7 +274,7 @@ public class QuizDialog extends JDialog {
         questionArea.setMinimumSize(new Dimension(360, 80));
         questionArea.setPreferredSize(new Dimension(360, 80));
         questionArea.setRows(0);
-        questionArea.setText("");
+        questionArea.setText("Загрузка...");
         scrollPane1.setViewportView(questionArea);
         final JPanel panel5 = new JPanel();
         panel5.setLayout(new BorderLayout(0, 0));
