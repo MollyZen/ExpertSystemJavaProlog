@@ -71,7 +71,7 @@ public class ChangeConditionList extends JDialog {
                 JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
                 Model tableModel = (Model) table.getModel();
 
-                if ((Boolean) tableModel.getValueAt(row, 0) == Boolean.FALSE && tableModel.includedQuestions.contains(tableModel.getValueAt(row, 3))) {
+                if ((Boolean) tableModel.getValueAt(row, 0) == Boolean.FALSE && tableModel.includedQuestions.contains(tableModel.getValueAt(table.convertRowIndexToModel(row), 3))) {
                     l.setBackground(Color.yellow);
                 } else {
                     l.setBackground(Color.white);
@@ -183,6 +183,11 @@ public class ChangeConditionList extends JDialog {
                     }
                 }
                 selected.put(conditions.getValue(rowIndex).id, (Boolean) aValue);
+                if ((Boolean) aValue) {
+                    includedQuestions.add(conditions.getValue(rowIndex).ass_question);
+                } else {
+                    includedQuestions.remove(conditions.getValue(rowIndex).ass_question);
+                }
                 this.fireDataChanged(rowIndex, columnIndex);
             }
         }
