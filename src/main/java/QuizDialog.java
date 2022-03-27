@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -175,15 +176,36 @@ public class QuizDialog extends JDialog {
         this.thread = new Thread() {
             @Override
             public void run() {
-                var res = new Query(new Compound("work", new Term[]{new Variable("Answ")})).oneSolution();
+                var res = new Query(new Compound("work", new Term[]{new Variable("Answ"), new Variable("List")})).oneSolution();
                 if (!this.isInterrupted()) {
+
                     QuizDialog.this.dispose();
                     ResultDialog resultDialog = new ResultDialog();
+
                     if (res != null && res.get("Answ").toString().equals("true")) {
                         resultDialog.resField.setText("Результат: следует покупать");
                     } else {
                         resultDialog.resField.setText("Результат: покупать НЕ следует");
                     }
+
+                    List<String> explsStr = new ArrayList<>();
+                    if (res == null) {
+                        Map<String, Term>[] expls = new Query("fact(N, _, 1), cond(N, Que, _, Expl)").allSolutions();
+                        for (Map<String, Term> expl : expls) {
+                            explsStr.add(expl.get("Que").toString().replaceAll("'*'", "") + " - " + expl.get("Expl").toString().replaceAll("'*'", ""));
+                        }
+                    } else {
+                        Term[] list = res.get("List").listToTermArray();
+                        for (Term cond : list) {
+                            Map<String, Term> expl = new Query("cond(" + cond.toString() + ",Que,_, Expl)").oneSolution();
+                            explsStr.add(expl.get("Que").toString().replaceAll("'*'", "") + " - " + expl.get("Expl").toString().replaceAll("'*'", ""));
+                        }
+                    }
+
+                    for (String expl : explsStr) {
+                        resultDialog.explArea.append(expl + "\n");
+                    }
+
                     resultDialog.run();
                 }
             }

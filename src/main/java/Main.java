@@ -32,7 +32,7 @@ public class Main {
                                 "!,fail,!"));
 
         //ключевая обработка
-        rulesToAdd.add(Term.textToTerm("work(Answ) :- not(interrupted(1)), !, rule(Res, List), checkList(List), Answ = Res"));
+        rulesToAdd.add(Term.textToTerm("work(Answ, List) :- not(interrupted(1)), !, rule(Res, List), checkList(List), Answ = Res"));
 
         //следующие два нужны чтоб можно было загружать новые файлы и корректно отображать содержание
         rulesToAdd.add(Term.textToTerm("file(drip)"));
