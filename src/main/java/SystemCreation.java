@@ -40,6 +40,9 @@ public class SystemCreation extends JDialog {
 
     public final SystemCreationChecker checker;
 
+    private int maxCond = 0;
+    private int maxQue = 0;
+
     public SystemCreation(Frame owner, Conditions conds, Questions questions, Rules rules) {
         super(owner);
         this.conds = conds == null ? new Conditions() : conds.clone();
@@ -57,6 +60,7 @@ public class SystemCreation extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 SystemCreation.this.conds.addNew();
+                SystemCreation.this.conds.list.get(SystemCreation.this.conds.list.size() - 1).id = maxCond++;
                 condTable.getRowSorter().rowsInserted(condTable.getModel().getRowCount() - 1, condTable.getModel().getRowCount() - 1);
                 condTable.revalidate();
             }
@@ -64,7 +68,13 @@ public class SystemCreation extends JDialog {
         removeCondButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (condTable.getSelectedRow() > -1 && condTable.getSelectedRow() < condTable.getRowCount()) {
+                if (condTable.getSelectedRow() < 0) {
+                    return;
+                }
+                if (SystemCreation.this.conds.getValue(condTable.convertRowIndexToModel(condTable.getSelectedRow())).id.equals(maxCond - 1)) {
+                    --maxCond;
+                }
+                if (condTable.getSelectedRow() < condTable.getRowCount()) {
                     if (!checker.isThisDuplicateCondId(SystemCreation.this.conds.getValue(condTable.convertRowIndexToModel(condTable.getSelectedRow())))) {
                         checker.condIdMap.remove(SystemCreation.this.conds.getValue(condTable.convertRowIndexToModel(condTable.getSelectedRow())).id);
                     }
@@ -76,6 +86,8 @@ public class SystemCreation extends JDialog {
                     }
                     condTable.revalidate();
                     ruleTable.repaint();
+
+
                 }
             }
         });
@@ -138,6 +150,7 @@ public class SystemCreation extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 SystemCreation.this.questions.addNew();
+                SystemCreation.this.questions.list.get(SystemCreation.this.questions.list.size() - 1).id = maxQue++;
                 questionTable.getRowSorter().rowsInserted(questionTable.getModel().getRowCount() - 1, questionTable.getModel().getRowCount() - 1);
                 questionTable.revalidate();
             }
@@ -145,8 +158,17 @@ public class SystemCreation extends JDialog {
         removeQuestionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (questionTable.getSelectedRow() > -1 && questionTable.getSelectedRow() < questionTable.getRowCount()) {
-                    if (!checker.isThisDuplicateQuestionId(SystemCreation.this.questions.getValue(questionTable.convertRowIndexToModel(condTable.getSelectedRow())))) {
+
+                if (questionTable.getSelectedRow() < 0) {
+                    return;
+                }
+
+                if (SystemCreation.this.questions.list.get(questionTable.convertRowIndexToModel(questionTable.getSelectedRow())).id.equals(maxQue - 1)) {
+                    --maxCond;
+                }
+
+                if (questionTable.getSelectedRow() < questionTable.getRowCount()) {
+                    if (!checker.isThisDuplicateQuestionId(SystemCreation.this.questions.getValue(questionTable.convertRowIndexToModel(questionTable.getSelectedRow())))) {
                         checker.queIdMap.remove(SystemCreation.this.questions.getValue(questionTable.convertRowIndexToModel(questionTable.getSelectedRow())).id);
                     }
                     SystemCreation.this.questions.remove(questionTable.convertRowIndexToModel(questionTable.getSelectedRow()));
@@ -168,7 +190,9 @@ public class SystemCreation extends JDialog {
 
                 Questions tableModel = (Questions) table.getModel();
 
-                if (checker.isThisDuplicateQuestionId(tableModel.getValue(table.getRowSorter().convertRowIndexToModel(row)))) {
+                if (tableModel.getValue(table.getRowSorter().convertRowIndexToModel(row)).id.equals(-1)) {
+                    l.setBackground(Color.pink);
+                } else if (checker.isThisDuplicateQuestionId(tableModel.getValue(table.getRowSorter().convertRowIndexToModel(row)))) {
                     l.setBackground(Color.pink);
                 } else {
                     l.setBackground(Color.white);
@@ -194,7 +218,10 @@ public class SystemCreation extends JDialog {
         removeRuleButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (ruleTable.getSelectedRow() > -1 && ruleTable.getSelectedRow() < ruleTable.getRowCount()) {
+                if (ruleTable.getSelectedRow() < 0) {
+                    return;
+                }
+                if (ruleTable.getSelectedRow() < ruleTable.getRowCount()) {
                     SystemCreation.this.rules.remove(ruleTable.convertRowIndexToModel(ruleTable.getSelectedRow()));
                     if (SystemCreation.this.rules.size() == 0) {
                         ruleTable.getRowSorter().allRowsChanged();
