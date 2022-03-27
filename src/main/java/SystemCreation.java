@@ -49,6 +49,21 @@ public class SystemCreation extends JDialog {
         this.questions = questions == null ? new Questions() : questions.clone();
         this.rules = rules == null ? new Rules() : rules.clone();
 
+        if (conds != null) {
+            int condId = Integer.MIN_VALUE;
+            for (Condition cond : conds.list) {
+                condId = cond.id >= condId ? cond.id + 1 : condId;
+            }
+            maxCond = condId;
+        }
+
+        if (questions != null) {
+            int queId = Integer.MIN_VALUE;
+            for (Question que : questions.list) {
+                queId = que.id >= queId ? que.id + 1 : queId;
+            }
+            maxQue = queId;
+        }
         checker = new SystemCreationChecker(this.conds, this.questions, this.rules);
 
         condTable.setModel(this.conds);
@@ -86,12 +101,10 @@ public class SystemCreation extends JDialog {
                     }
                     condTable.revalidate();
                     ruleTable.repaint();
-
-
                 }
             }
         });
-        this.conds.addTableModelListener(condTable);
+        //this.conds.addTableModelListener(condTable);
         this.conds.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
@@ -179,7 +192,7 @@ public class SystemCreation extends JDialog {
                         questionTable.getRowSorter().rowsDeleted(questionTable.getModel().getRowCount() - 1, questionTable.getModel().getRowCount() - 1);
                     }
                     questionTable.revalidate();
-                    condTable.revalidate();
+                    condTable.repaint();
                 }
             }
         });

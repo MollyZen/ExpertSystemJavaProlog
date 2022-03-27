@@ -7,7 +7,6 @@ public class SystemCreationChecker{
 
     public Conditions conds;
     public Questions questions;
-    public Rules rules;
 
     public HashMap<Integer, Condition> condIdMap = new HashMap<>();
     public HashMap<Integer, Question> queIdMap = new HashMap<>();
@@ -15,7 +14,17 @@ public class SystemCreationChecker{
     public SystemCreationChecker(Conditions conds, Questions questions, Rules rules) {
         this.conds = conds;
         this.questions = questions;
-        this.rules = rules;
+
+        if (conds != null) {
+            for (Condition cond: conds.list){
+                condIdMap.put(cond.id, cond);
+            }
+        }
+        if (questions != null){
+            for (Question que : questions.list){
+                queIdMap.put(que.id, que);
+            }
+        }
     }
 
     public boolean isThisDuplicateCondId(Condition cond){

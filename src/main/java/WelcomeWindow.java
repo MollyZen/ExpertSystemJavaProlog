@@ -108,9 +108,9 @@ public class WelcomeWindow extends JFrame {
 
     public void loadSystemFromFile() {
         if (WelcomeWindow.this.file != null && WelcomeWindow.this.file.exists()) {
-            WelcomeWindow.this.conds.list.clear();
-            WelcomeWindow.this.questions.list.clear();
-            WelcomeWindow.this.rules.list.clear();
+            WelcomeWindow.this.conds = new Conditions();
+            WelcomeWindow.this.questions = new Questions();
+            WelcomeWindow.this.rules = new Rules();
             try {
                 List<String> read = Files.readAllLines(Paths.get(WelcomeWindow.this.file.getAbsolutePath()));
                 for (String line : read) {
