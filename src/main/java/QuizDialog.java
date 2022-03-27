@@ -1,13 +1,11 @@
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import org.jpl7.Compound;
-import org.jpl7.Query;
-import org.jpl7.Term;
-import org.jpl7.Variable;
+import org.jpl7.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.Integer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -176,7 +174,18 @@ public class QuizDialog extends JDialog {
         this.thread = new Thread() {
             @Override
             public void run() {
-                var res = new Query(new Compound("work", new Term[]{new Variable("Answ"), new Variable("List")})).oneSolution();
+                Map<String, Term> res = null;
+                try {
+                    res = new Query(new Compound("work", new Term[]{new Variable("Answ"), new Variable("List")})).oneSolution();
+                } catch (PrologException e) {
+                    QuizDialog.this.dispose();
+                    ResultDialog resultDialog = new ResultDialog();
+                    resultDialog.resField.setText("Результата нет");
+                    resultDialog.explArea.append("Произошла ошибка во время выполнения. Файл повреждён или в нём отсутствуют правила\n");
+                    resultDialog.explArea.append(e.term().toString());
+                    resultDialog.run();
+                    return;
+                }
                 if (!this.isInterrupted()) {
 
                     QuizDialog.this.dispose();

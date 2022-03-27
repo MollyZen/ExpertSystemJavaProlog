@@ -115,11 +115,25 @@ public class WelcomeWindow extends JFrame {
                 List<String> read = Files.readAllLines(Paths.get(WelcomeWindow.this.file.getAbsolutePath()));
                 for (String line : read) {
                     if (line.contains("cond(")) {
-                        String[] args = line.replace("cond(", "").replace(").", "").split(",");
-                        WelcomeWindow.this.conds.list.add(new Condition(Integer.valueOf(args[0]), args[1].replace("\"", "").trim(), Integer.valueOf(args[2]), args[3].replace("\"", "").trim()));
+                        String[] args = new String[4];
+                        String lineWithoutDot = line.substring(0, line.length() - 1);
+                        for (int i = 1; i < 5; ++i) {
+                            args[i - 1] = new Query("arg(" + i + "," + lineWithoutDot + ", Val)").oneSolution().get("Val").toString();
+                        }
+                        WelcomeWindow.this.conds.list.add(new Condition(
+                                Integer.valueOf(args[0]),
+                                args[1].replaceFirst("'", "").substring(0, args[1].length() - 2),
+                                Integer.valueOf(args[2]),
+                                args[3].replaceFirst("'", "").substring(0, args[3].length() - 2)));
                     } else if (line.contains("question(")) {
-                        String[] args = line.replace("question(", "").replace(").", "").split(",");
-                        WelcomeWindow.this.questions.list.add(new Question(Integer.valueOf(args[0]), args[1].replace("\"", "").trim()));
+                        String[] args = new String[2];
+                        String lineWithoutDot = line.substring(0, line.length() - 1);
+                        for (int i = 1; i < 3; ++i) {
+                            args[i - 1] = new Query("arg(" + i + "," + lineWithoutDot + ", Val)").oneSolution().get("Val").toString();
+                        }
+                        WelcomeWindow.this.questions.list.add(new Question(
+                                Integer.valueOf(args[0]),
+                                args[1].replaceFirst("\'", "").substring(0, args[1].length() - 2)));
                     } else if (line.contains("rule(")) {
                         String[] args = line.replace("rule(", "").replace(").", "")
                                 .replaceFirst("\\[", "")

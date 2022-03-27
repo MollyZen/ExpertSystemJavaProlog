@@ -153,6 +153,7 @@ public class SystemCreation extends JDialog {
                 SystemCreation.this.questions.list.get(SystemCreation.this.questions.list.size() - 1).id = maxQue++;
                 questionTable.getRowSorter().rowsInserted(questionTable.getModel().getRowCount() - 1, questionTable.getModel().getRowCount() - 1);
                 questionTable.revalidate();
+                condTable.revalidate();
             }
         });
         removeQuestionButton.addActionListener(new ActionListener() {
@@ -178,6 +179,7 @@ public class SystemCreation extends JDialog {
                         questionTable.getRowSorter().rowsDeleted(questionTable.getModel().getRowCount() - 1, questionTable.getModel().getRowCount() - 1);
                     }
                     questionTable.revalidate();
+                    condTable.revalidate();
                 }
             }
         });
