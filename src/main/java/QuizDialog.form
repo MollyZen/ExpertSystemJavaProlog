@@ -65,13 +65,12 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="9bcf8" class="javax.swing.JTextArea" binding="questionArea">
+                  <component id="23045" class="javax.swing.JTextArea" binding="questionArea">
                     <constraints/>
                     <properties>
                       <editable value="false"/>
                       <minimumSize width="360" height="80"/>
-                      <preferredSize width="360" height="80"/>
-                      <rows value="0"/>
+                      <preferredSize width="360" height="198"/>
                       <text value="Загрузка..."/>
                     </properties>
                   </component>
@@ -90,6 +89,7 @@
               <scrollpane id="11aa8" binding="radioScrollPane">
                 <constraints border-constraint="Center"/>
                 <properties>
+                  <preferredSize width="360" height="80"/>
                   <verticalScrollBarPolicy value="20"/>
                 </properties>
                 <border type="none"/>
@@ -98,7 +98,8 @@
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints/>
                     <properties>
-                      <preferredSize width="360" height="80"/>
+                      <autoscrolls value="false"/>
+                      <preferredSize width="-1" height="-1"/>
                     </properties>
                     <border type="none"/>
                     <children/>

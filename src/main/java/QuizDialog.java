@@ -7,7 +7,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.lang.Integer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +55,7 @@ public class QuizDialog extends JDialog {
                 onOK();
             }
         });
+        questionArea.setLineWrap(true);
     }
 
     private void onOK() {
@@ -138,31 +138,38 @@ public class QuizDialog extends JDialog {
         return strings;
     }
 
+    private int biggestPrefferedButtonWidth = 0;
+    private int biggestPrefferedButtonHeight = 0;
+
     public void addButtons(String... buttons) {
         radioPanel.setLayout(new GridLayoutManager(buttons.length, 1));
         for (int i = 0; i < buttons.length; ++i) {
             addButton(buttons[i], i);
         }
-        radioPanel.setPreferredSize(new Dimension(100, (choiceButtons.size() + 1) * 30));
+        radioPanel.setPreferredSize(new Dimension(biggestPrefferedButtonWidth, biggestPrefferedButtonHeight * choiceButtonsGroup.getButtonCount()));
+        radioPanel.revalidate();
+        radioScrollPane.revalidate();
     }
 
     public void addButton(String button, int row) {
         JRadioButton drip = new JRadioButton(button);
+        biggestPrefferedButtonWidth = Math.max(drip.getPreferredSize().width, biggestPrefferedButtonWidth);
+        biggestPrefferedButtonHeight = Math.max(drip.getPreferredSize().height, biggestPrefferedButtonHeight);
         choiceButtons.add(drip);
         choiceButtonsGroup.add(drip);
         radioPanel.add(drip, new GridConstraints(row, 0, 1, 1,
-                GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                GridConstraints.ALIGN_CENTER, GridConstraints.ALIGN_CENTER,
-                new Dimension(100, 30), new Dimension(100, 30), new Dimension(100, 30)));
+                GridConstraints.ANCHOR_WEST, GridConstraints.FILL_BOTH,
+                GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_CAN_SHRINK, GridConstraints.SIZEPOLICY_FIXED,
+                new Dimension(-1, -1), new Dimension(-1, -1), new Dimension(-1, -1)));
     }
 
     public void clearButtons() {
         for (JRadioButton button : choiceButtons) {
             choiceButtonsGroup.remove(button);
-            radioPanel.remove(button);
             this.remove(button);
         }
         choiceButtons.clear();
+        radioPanel.removeAll();
     }
 
     public static void debug(String val) {
@@ -303,8 +310,7 @@ public class QuizDialog extends JDialog {
         questionArea = new JTextArea();
         questionArea.setEditable(false);
         questionArea.setMinimumSize(new Dimension(360, 80));
-        questionArea.setPreferredSize(new Dimension(360, 80));
-        questionArea.setRows(0);
+        questionArea.setPreferredSize(new Dimension(360, 198));
         questionArea.setText("Загрузка...");
         scrollPane1.setViewportView(questionArea);
         final JPanel panel5 = new JPanel();
@@ -317,11 +323,13 @@ public class QuizDialog extends JDialog {
         gbc.fill = GridBagConstraints.BOTH;
         panel3.add(panel5, gbc);
         radioScrollPane = new JScrollPane();
+        radioScrollPane.setPreferredSize(new Dimension(360, 80));
         radioScrollPane.setVerticalScrollBarPolicy(20);
         panel5.add(radioScrollPane, BorderLayout.CENTER);
         radioPanel = new JPanel();
         radioPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        radioPanel.setPreferredSize(new Dimension(360, 80));
+        radioPanel.setAutoscrolls(false);
+        radioPanel.setPreferredSize(new Dimension(-1, -1));
         radioScrollPane.setViewportView(radioPanel);
     }
 
